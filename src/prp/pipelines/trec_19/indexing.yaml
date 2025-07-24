@@ -1,0 +1,20 @@
+# Instructor Indexing Pipeline Configuration
+
+# Dataset configuration
+dataset:
+  name: "msmarco-document-v2/trec-dl-2019"
+
+# Embedding model configuration
+embedding:
+  model: "hkunlp/instructor-xl"
+  model_kwargs:
+    normalize_embeddings: true
+    encode_kwargs:
+      prompt: "Represent these documents for retrieval:"
+
+# Milvus vector database configuration
+milvus:
+  connection_uri: "MILVUS_URI"
+  connection_token: "MILVUS_TOKEN"
+  document_store_kwargs:
+    collection_name: "trec_19"

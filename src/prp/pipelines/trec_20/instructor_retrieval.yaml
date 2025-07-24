@@ -1,0 +1,35 @@
+# Instructor Retrieval Pipeline Configuration
+
+# Dataset configuration
+dataset:
+  name: "msmarco-document-v2/trec-dl-2020"
+
+# Embedding model configuration
+embedding:
+  model: "hkunlp/instructor-xl"
+  model_kwargs:
+    normalize_embeddings: true
+    encode_kwargs:
+      prompt: "Represent these documents for retrieval:"
+
+# Milvus vector database configuration
+milvus:
+  connection_uri: "MILVUS_URI"
+  connection_token: "MILVUS_TOKEN"
+  document_store_kwargs:
+    collection_name: "trec_20"
+
+# Retrieval configuration
+filters: {}
+documents_to_retrieve: 50
+
+# Evaluation configuration
+evaluation:
+  cutoff_values: [1, 3, 5, 10]
+  ignore_identical_ids: false
+  decimal_precision: 4
+  metrics_to_compute:
+    - "ndcg"
+    - "map"
+    - "recall"
+    - "precision"
