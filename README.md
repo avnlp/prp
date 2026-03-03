@@ -3,7 +3,7 @@
 This repository provides a implementation of **Pairwise Ranking Prompting (PRP)** technique from [Large Language Models are Effective Text Rankers with Pairwise Ranking
 Prompting](https://arxiv.org/pdf/2306.17563).
 
-The provide implementaion for the three PRP-based ranking strategies highlighted in the paper:
+The provide implementation for the three PRP-based ranking strategies highlighted in the paper:
 
 1. **`all_pair`**
 
