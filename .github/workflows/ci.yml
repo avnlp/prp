@@ -1,0 +1,204 @@
+name: CI
+
+on:
+  schedule:
+    - cron: "30 1 * * *"
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHONUNBUFFERED: "1"
+  FORCE_COLOR: "1"
+
+jobs:
+  deps-py311:
+    name: Dependencies (Python 3.11)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "pyproject.toml"
+          cache-suffix: "py311"
+          save-cache: true
+          prune-cache: false
+
+      - name: Install dependencies
+        run: uv sync --all-groups
+
+  deps-py314:
+    name: Dependencies (Python 3.14)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "pyproject.toml"
+          cache-suffix: "py314"
+          save-cache: true
+          prune-cache: false
+
+      - name: Install dependencies
+        run: uv sync --all-groups
+
+  test-py311:
+    name: Test and Lint (Python 3.11)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: deps-py311
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "pyproject.toml"
+          cache-suffix: "py311"
+          save-cache: false
+
+      - name: Install dependencies
+        run: uv sync --all-groups
+
+      - name: Lint & type check
+        run: |
+          make lint-check
+          make lint-typing
+
+      - name: Run tests with coverage
+        run: make test-ci
+        env:
+          PYTHONPATH: ${{ github.workspace }}/src
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
+          flags: unittests
+          name: codecov-prp
+          fail_ci_if_error: false
+          verbose: true
+          slug: avnlp/prp
+        env:
+          OS: ubuntu-latest
+          PYTHON: "3.11"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-results-3.11
+          path: pytest-results.xml
+          retention-days: 30
+
+  test-py314:
+    name: Tests (Python 3.14)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: deps-py314
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "pyproject.toml"
+          cache-suffix: "py314"
+          save-cache: false
+
+      - name: Install dependencies
+        run: uv sync --all-groups
+
+      - name: Run tests
+        run: make test
+
+  security-scan:
+    name: Security Scanning
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: deps-py311
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: ".python-version"
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "pyproject.toml"
+          cache-suffix: "py311"
+          save-cache: false
+
+      - name: Install dependencies
+        run: uv sync --all-groups
+
+      - name: Run Bandit security scan
+        run: make security-bandit
+        continue-on-error: true
+
+      - name: Generate Bandit JSON report
+        if: always()
+        run: uv run bandit -c pyproject.toml -r src/ -f json -o bandit-report.json || true
+
+      - name: Run pip-audit
+        run: make security-audit
+        continue-on-error: true
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+
+      - name: Upload Bandit results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bandit-security-report
+          path: bandit-report.json
+          retention-days: 30
