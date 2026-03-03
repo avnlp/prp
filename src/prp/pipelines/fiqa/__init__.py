@@ -1,1 +1,1 @@
-"""FIQA pipeline module."""
+"""FIQA pipeline."""

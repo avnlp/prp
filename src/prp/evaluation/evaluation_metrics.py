@@ -1,4 +1,4 @@
-"""Evaluation metrics container module."""
+"""Container for IR evaluation metrics."""
 
 from dataclasses import dataclass
 
@@ -8,14 +8,10 @@ class EvaluationMetrics:
     """Container for evaluation metrics with validation.
 
     Attributes:
-        ndcg (Dict[str, float]): NDCG scores keyed by metric string
-            (e.g., 'NDCG@1').
-        map (Dict[str, float]): MAP scores keyed by metric string
-            (e.g., 'MAP@1').
-        recall (Dict[str, float]): Recall scores keyed by metric string
-            (e.g., 'RECALL@1').
-        precision (Dict[str, float]): Precision scores keyed by metric string
-            (e.g., 'PRECISION@1').
+        ndcg: NDCG scores keyed by metric string (e.g., 'NDCG@1').
+        map: MAP scores keyed by metric string (e.g., 'MAP@1').
+        recall: Recall scores keyed by metric string (e.g., 'RECALL@1').
+        precision: Precision scores keyed by metric string (e.g., 'PRECISION@1').
     """
 
     ndcg: dict[str, float]

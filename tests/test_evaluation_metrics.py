@@ -1,4 +1,4 @@
-"""Tests for the EvaluationMetrics class and metric computation."""
+"""Tests for evaluation metrics."""
 
 import pytest
 
@@ -8,7 +8,7 @@ from prp.evaluation.evaluator_params import EvaluatorParams
 
 
 class TestEvaluationMetrics:
-    """Test suite for EvaluationMetrics: initialization and data handling."""
+    """Test suite for the EvaluationMetrics class."""
 
     def test_evaluation_metrics_validation(self):
         """Test EvaluationMetrics raises ValueError for metrics with different lengths.
@@ -25,7 +25,7 @@ class TestEvaluationMetrics:
             )
 
     def test_metrics_extraction(self):
-        """Test EvaluationMetrics stores and allows individual metric value extraction.
+        """Test that EvaluationMetrics correctly stores and extracts metric values.
 
         Verifies that metrics can be accessed by their specific keys after
         initialization, and that the values are preserved exactly as input.

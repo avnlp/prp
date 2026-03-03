@@ -1,4 +1,4 @@
-"""Tests for the Evaluator class and its metric computation methods."""
+"""Tests for the Evaluator class."""
 
 import logging
 from unittest.mock import MagicMock
@@ -50,33 +50,33 @@ def evaluator_config():
 
 
 class TestEvaluator:
-    """Test suite for Evaluator: initialization and metric computation."""
+    """Test suite for the Evaluator class."""
 
     def test_initialization_with_valid_data(
         self, sample_relevance_judgments, sample_run_results
     ):
-        """Test Evaluator initializes with valid relevance judgments and run results.
+        """Test that Evaluator can be initialized with valid data.
 
         Args:
-            sample_relevance_judgments (dict): Predefined relevance judgments.
-            sample_run_results (dict): Predefined run results.
+            sample_relevance_judgments: Predefined relevance judgments.
+            sample_run_results: Predefined run results.
         """
         evaluator = Evaluator(sample_relevance_judgments, sample_run_results)
         assert evaluator is not None
         assert evaluator.config is not None
 
     def test_initialization_with_empty_relevance_judgments_raises_error(self):
-        """Test that Evaluator with empty relevance judgments raises a ValueError."""
+        """Test that initializing with empty relevance judgments raises ValueError."""
         with pytest.raises(ValueError):
             Evaluator({}, {"q1": {"d1": 1.0}})
 
     def test_initialization_with_empty_run_results_raises_error(self):
-        """Test that Evaluator with empty run results raises a ValueError."""
+        """Test that initializing with empty run results raises ValueError."""
         with pytest.raises(ValueError):
             Evaluator({"q1": {"d1": 1}}, {})
 
     def test_invalid_cutoff_values_raises_error(self):
-        """Test that Evaluator with invalid cutoff values (zero) raises a ValueError."""
+        """Test that initializing with invalid cutoff values raises ValueError."""
         with pytest.raises(ValueError):
             Evaluator(
                 {"q1": {"d1": 1}},
@@ -85,7 +85,7 @@ class TestEvaluator:
             )
 
     def test_warning_when_no_common_queries(self, caplog):
-        """Test warning logged when no common queries exist between qrels and runs.
+        """Test warning is logged when there are no common queries.
 
         Args:
             caplog: pytest fixture for capturing log messages.
@@ -106,7 +106,7 @@ class TestEvaluator:
         assert evaluator.run_results == {"q1": {"d2": 0.8}, "q2": {"d3": 0.7}}
 
     def test_filter_identical_ids_disabled(self):
-        """Test identical IDs are not removed when ignore_identical_ids is False."""
+        """Test that identical IDs are not removed when flag is False."""
         run_results = {"q1": {"q1": 0.9, "d2": 0.8}}
         evaluator = Evaluator(
             {"q1": {}}, run_results, EvaluatorParams(ignore_identical_ids=False)
@@ -259,3 +259,82 @@ class TestEvaluator:
             evaluator.evaluate()
         assert "Evaluation completed successfully" in caplog.text
         assert "Evaluation Metrics:" in caplog.text
+
+    def test_evaluate_returns_cached_metrics_on_second_call(
+        self, monkeypatch, sample_relevance_judgments, sample_run_results
+    ):
+        """Test that evaluate() returns cached metrics on subsequent calls."""
+        mock_evaluator = MagicMock()
+        mock_evaluator.evaluate.return_value = {
+            "q1": {"ndcg_cut_1": 0.8, "map_cut_1": 0.7, "recall_1": 0.6, "P_1": 0.5},
+            "q2": {"ndcg_cut_1": 0.7, "map_cut_1": 0.6, "recall_1": 0.5, "P_1": 0.4},
+        }
+        monkeypatch.setattr(
+            "prp.evaluation.evaluator.RelevanceEvaluator",
+            lambda *a, **k: mock_evaluator,
+        )
+
+        evaluator = Evaluator(
+            sample_relevance_judgments,
+            sample_run_results,
+            EvaluatorParams(
+                cutoff_values=(1,),
+                metrics_to_compute=("ndcg", "map", "recall", "precision"),
+            ),
+        )
+
+        m1 = evaluator.evaluate()
+        m2 = evaluator.evaluate()  # Should return cached result
+        assert m1 is m2
+        # RelevanceEvaluator.evaluate should only be called once
+        assert mock_evaluator.evaluate.call_count == 1
+
+    def test_validate_input_data_rejects_non_positive_cutoffs(
+        self, sample_relevance_judgments, sample_run_results
+    ):
+        """Test that _validate_input_data raises ValueError for non-positive cutoffs."""
+        evaluator = Evaluator(sample_relevance_judgments, sample_run_results)
+        with pytest.raises(ValueError, match="positive integers"):
+            evaluator._validate_input_data(
+                sample_relevance_judgments, sample_run_results, cutoff_values=(0, 5)
+            )
+
+    def test_compute_base_metrics_raises_for_undefined_metric(
+        self, sample_relevance_judgments, sample_run_results
+    ):
+        """Test that _compute_base_metrics raises ValueError for undefined metrics."""
+        cfg = EvaluatorParams(metrics_to_compute=("ndcg",), cutoff_values=(1,))
+        evaluator = Evaluator(sample_relevance_judgments, sample_run_results, cfg)
+        # Bypass validation by directly setting invalid metrics
+        evaluator.config.metrics_to_compute = ("ndcg", "invalid_metric")
+
+        with pytest.raises(ValueError, match="Undefined metrics"):
+            evaluator._compute_base_metrics()
+
+    def test_evaluation_metrics_property_returns_after_evaluate(
+        self, monkeypatch, sample_relevance_judgments, sample_run_results
+    ):
+        """Test evaluation_metrics property returns metrics after evaluate() is.
+
+        called.
+        """
+        mock_evaluator = MagicMock()
+        mock_evaluator.evaluate.return_value = {
+            "q1": {"ndcg_cut_1": 1.0, "map_cut_1": 0.9, "recall_1": 0.8, "P_1": 0.7},
+            "q2": {"ndcg_cut_1": 0.9, "map_cut_1": 0.8, "recall_1": 0.7, "P_1": 0.6},
+        }
+        monkeypatch.setattr(
+            "prp.evaluation.evaluator.RelevanceEvaluator",
+            lambda *a, **k: mock_evaluator,
+        )
+
+        evaluator = Evaluator(
+            sample_relevance_judgments,
+            sample_run_results,
+            EvaluatorParams(
+                cutoff_values=(1,),
+                metrics_to_compute=("ndcg", "map", "recall", "precision"),
+            ),
+        )
+        metrics = evaluator.evaluate()
+        assert evaluator.evaluation_metrics is metrics

@@ -1,4 +1,4 @@
-"""Configuration loader utilities for PRP."""
+"""Configuration loader utilities for loading and validating YAML configs."""
 
 from pathlib import Path
 from typing import TypeVar

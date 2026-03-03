@@ -1,4 +1,4 @@
-"""Prompt templates and response validation for pairwise ranking."""
+"""Prompt templates and response models for pairwise ranking."""
 
 from pydantic import BaseModel, Field, ValidationInfo, field_validator
 

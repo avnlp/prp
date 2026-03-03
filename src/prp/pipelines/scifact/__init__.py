@@ -1,1 +1,1 @@
-"""SciFact pipeline module."""
+"""SciFact pipeline."""

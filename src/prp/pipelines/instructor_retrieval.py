@@ -1,4 +1,4 @@
-"""Instructor retrieval pipeline module."""
+"""Instructor retrieval pipeline."""
 
 import argparse
 from pathlib import Path

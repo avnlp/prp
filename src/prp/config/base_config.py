@@ -1,4 +1,4 @@
-"""Base configuration classes for PRP."""
+"""Base configuration classes for PRP library."""
 
 from typing import Any, Literal
 
@@ -31,10 +31,10 @@ class EmbeddingConfig(BaseModel):
     )
 
     @model_validator(mode="after")
-    def strip_device(self, values):
+    def strip_device(self):
         """Remove stray device keys to avoid Haystack ComponentDevice errors."""
-        values.model_kwargs.pop("device", None)
-        return values
+        self.model_kwargs.pop("device", None)
+        return self
 
 
 class MilvusConfig(BaseModel):

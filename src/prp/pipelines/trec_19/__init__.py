@@ -1,1 +1,1 @@
-"""TREC 2019 pipeline module."""
+"""TREC 2019 pipeline."""

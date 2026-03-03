@@ -1,4 +1,4 @@
-"""Tests for the Dataloader and Dataset classes."""
+"""Tests for dataloader functionality."""
 
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
@@ -12,12 +12,10 @@ from prp.dataloader.dataloader import Dataloader, Dataset
 def mock_ir_dataset():
     """Fixture to mock the `ir_datasets.load` function.
 
-    This fixture patches `ir_datasets.load` to return a mock dataset
-    that can be used for testing.
+    This fixture patches `ir_datasets.load` to return a mock dataset for testing.
 
     Yields:
-        MagicMock: A mock dataset with iterable methods for documents,
-            queries, and relevance judgments.
+        MagicMock: A mock dataset with iterable methods for docs, queries, and qrels.
     """
     with patch("prp.dataloader.dataloader.load_dataset") as mock_load_function:
         mock_dataset_instance = MagicMock()
@@ -29,10 +27,10 @@ class TestDataset:
     """Test suite for the Dataloader and Dataset classes."""
 
     def test_dataloader_load(self, mock_ir_dataset):
-        """Tests that Dataloader correctly loads a dataset and structures it properly.
+        """Test Dataloader loads a dataset and structures it properly.
 
         Args:
-            mock_ir_dataset (MagicMock): The mocked dataset fixture.
+            mock_ir_dataset: The mocked dataset fixture.
         """
         # Setup mock data
         mock_ir_dataset.docs_iter.return_value = [
@@ -62,10 +60,10 @@ class TestDataset:
 
     @pytest.mark.parametrize("dataset_name", ["invalid/dataset", "nonexistent"])
     def test_dataloader_invalid_dataset(self, dataset_name):
-        """Tests that Dataloader raises an error when an invalid dataset is provided.
+        """Test that the Dataloader raises an error when an invalid dataset is provided.
 
         Args:
-            dataset_name (str): The name of the dataset that does not exist.
+            dataset_name: The name of the dataset that does not exist.
         """
         with (
             patch(

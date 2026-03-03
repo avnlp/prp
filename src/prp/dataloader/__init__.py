@@ -1,4 +1,4 @@
-"""Data loader module for information retrieval datasets."""
+"""Data loading utilities for IR datasets."""
 
 from prp.dataloader.dataloader import Dataloader
 

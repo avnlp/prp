@@ -1,4 +1,4 @@
-"""Indexing pipeline module for vector database ingestion."""
+"""Indexing pipeline for document embedding and storage."""
 
 import argparse
 from pathlib import Path

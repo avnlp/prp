@@ -1,4 +1,4 @@
-"""Evaluation pipeline for Pairwise Ranking Prompting in information retrieval."""
+"""Pairwise ranking prompting pipeline for document reranking."""
 
 import argparse
 from pathlib import Path
@@ -13,7 +13,7 @@ from prp.config import PairwiseRankingPromptingConfig, load_config
 
 
 def main(config_path: str):
-    """Evaluate retrieved document quality using the Pairwise LLM Ranker.
+    """Run a pipeline evaluating retrieved documents using the Pairwise LLM Ranker.
 
     The pipeline consists of:
     1. Loading dataset with ir_datasets format

@@ -1,4 +1,4 @@
-"""Tests for the PairwiseRankingPrompting class."""
+"""Tests for PairwiseRankingPrompting implementation."""
 
 import json
 from types import SimpleNamespace
@@ -54,7 +54,7 @@ def prp_instance():
     """Fixture to create a fresh PairwiseRankingPrompting instance.
 
     Returns:
-        PairwiseRankingPrompting: PRP instance with dummy model and API info.
+        PairwiseRankingPrompting: An instance with dummy model and API info.
     """
     return PairwiseRankingPrompting(
         model_name="test-model", api_key="llm_api_key", base_url="llm_base_url"
@@ -117,10 +117,12 @@ class TestPairwiseRankingPrompting:
             assert prp_instance.get_token_count() == tokens
 
     def test_compare_pair_exception(self, prp_instance):
-        """Test _compare_pair handles API exceptions gracefully and returns 'A'.
+        """Test _compare_pair handles API exceptions gracefully.
+
+        Returns 'A' by default when exceptions occur.
 
         Args:
-            prp_instance (PairwiseRankingPrompting): The PRP instance to test.
+            prp_instance: The PRP instance to test.
         """
 
         class BadChat:
@@ -208,11 +210,11 @@ class TestPairwiseRankingPrompting:
         assert sorted_docs == ["b", "a"]
 
     def test_allpairs_rerank(self, monkeypatch, prp_instance):
-        """Test all-pairs ranking preserves document order with consistent comparisons.
+        """Test all-pairs ranking preserves order based on consistent preferences.
 
         Args:
-            monkeypatch (pytest.MonkeyPatch): Pytest monkeypatch fixture for patching.
-            prp_instance (PairwiseRankingPrompting): The PRP instance to test.
+            monkeypatch: Pytest monkeypatch fixture for patching.
+            prp_instance: The PRP instance to test.
         """
         docs = ["a", "b", "c"]
 
@@ -281,3 +283,92 @@ class TestPairwiseRankingPrompting:
             "q", docs, method="sliding_k", top_k=2, sliding_k_passes=5
         )
         assert res == ["X", "Y"]
+
+    def test_init_applies_client_kwargs(self, monkeypatch):
+        """Test that client_kwargs are passed to the OpenAI client."""
+        captured = {}
+
+        def fake_openai(**kwargs):
+            captured.update(kwargs)
+            return SimpleNamespace(
+                chat=SimpleNamespace(completions=MockChat(MockResponse("{}")))
+            )
+
+        monkeypatch.setattr("prp.prp.OpenAI", fake_openai)
+        PairwiseRankingPrompting(
+            model_name="m",
+            api_key="k",
+            client_kwargs={"timeout": 30, "max_retries": 3},
+        )
+        assert captured["api_key"] == "k"
+        assert captured["timeout"] == 30
+        assert captured["max_retries"] == 3
+
+    def test_rerank_heapsort_dispatch(self, monkeypatch, prp_instance):
+        """Test that rerank dispatches to _heapsort_rerank when method='heapsort'."""
+        monkeypatch.setattr(
+            prp_instance, "_heapsort_rerank", lambda q, docs: ["H1", "H2"]
+        )
+        result = prp_instance.rerank("q", ["a", "b"], method="heapsort")
+        assert result == ["H1", "H2"]
+
+    def test_rerank_sliding_k_uses_top_k_when_no_sliding_k_passes(
+        self, monkeypatch, prp_instance
+    ):
+        """Test sliding_k uses top_k as num_passes when sliding_k_passes is None."""
+        seen = {}
+
+        def fake_sliding(q, docs, num_passes):
+            seen["num_passes"] = num_passes
+            return docs
+
+        monkeypatch.setattr(prp_instance, "_sliding_k_rerank", fake_sliding)
+
+        prp_instance.rerank(
+            "q", ["a", "b", "c"], method="sliding_k", top_k=3, sliding_k_passes=None
+        )
+        assert seen["num_passes"] == 3
+
+    def test_rerank_sliding_k_defaults_to_10_passes(self, monkeypatch, prp_instance):
+        """Test sliding_k defaults to 10 passes when top_k is not provided."""
+        seen = {}
+
+        def fake_sliding(q, docs, num_passes):
+            seen["num_passes"] = num_passes
+            return docs
+
+        monkeypatch.setattr(prp_instance, "_sliding_k_rerank", fake_sliding)
+
+        prp_instance.rerank(
+            "q", ["a", "b"], method="sliding_k", top_k=None, sliding_k_passes=None
+        )
+        assert seen["num_passes"] == 10
+
+    def test_sift_down_takes_right_child_branch(self):
+        """Test that _sift_down correctly handles when right child is largest."""
+        prp = PairwiseRankingPrompting(model_name="m", api_key="k", base_url="url")
+        indices = [1, 2, 3]  # right child (3) should become largest
+
+        def compare(i, j):
+            return i > j
+
+        prp._sift_down(indices, root=0, heap_size=len(indices), compare_fn=compare)
+        assert indices[0] == 3
+
+    def test_heapsort_tie_break_is_stable(self, monkeypatch, prp_instance):
+        """Test that heapsort maintains stable order when scores tie."""
+        monkeypatch.setattr(
+            prp_instance,
+            "_compare_with_bias_mitigation",
+            lambda q, i, j, docs: (0.5, 0.5),
+        )
+        docs = ["d0", "d1", "d2"]
+        result = prp_instance._heapsort_rerank("q", docs)
+        assert result == docs
+
+    def test_allpairs_rerank_single_document_returns_copy(self, prp_instance):
+        """Test that _allpairs_rerank returns a copy for single document."""
+        docs = ["only"]
+        out = prp_instance._allpairs_rerank("q", docs)
+        assert out == ["only"]
+        assert out is not docs  # ensure it's a copy

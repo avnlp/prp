@@ -1,4 +1,4 @@
-"""Configuration classes for pairwise ranking prompting."""
+"""PRP-specific configuration classes."""
 
 from enum import Enum
 from typing import Any

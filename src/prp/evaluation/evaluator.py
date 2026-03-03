@@ -1,12 +1,10 @@
-"""Retrieval evaluation engine using pytrec_eval.
+"""Evaluator for Information Retrieval systems using pytrec_eval.
 
-Based on the BEIR retrieval evaluation library, restructured with Pydantic
-validation and error handling for metric edge cases.
+This implementation is based on the Retrieval Evaluation from
+https://github.com/beir-cellar/beir/blob/main/beir/retrieval/evaluation.py
+The code has been restructured with extensive Pydantic validation and
+error handling for metric edge cases.
 """
-
-# This implementation is based on the Retrieval Evaluation from https://github.com/beir-cellar/beir/blob/main/beir/retrieval/evaluation.py
-# The code has been restructured with extensive Pydantic validation and
-# error handling for metric edge cases.
 
 import copy
 import logging
@@ -30,13 +28,10 @@ class Evaluator:
     using the pytrec_eval library.
 
     Attributes:
-        relevance_judgments (Dict[str, Dict[str, int]]): The ground truth
-            relevance judgments.
-        run_results (Dict[str, Dict[str, float]]): The results produced by
-            an IR system.
-        config (EvaluatorParams): Configuration for evaluation.
-        _evaluation_metrics (EvaluationMetrics): Cached evaluation metrics
-            after computation.
+        relevance_judgments: The ground truth relevance judgments.
+        run_results: The results produced by an IR system.
+        config: Configuration for evaluation.
+        _evaluation_metrics: Cached evaluation metrics after computation.
     """
 
     def __init__(
@@ -45,15 +40,13 @@ class Evaluator:
         run_results: dict[str, dict[str, float]],
         config: EvaluatorParams | None = None,
     ) -> None:
-        """Initialize the evaluator with relevance judgments and configuration.
+        """Initialize evaluator with relevance judgments, system results, and config.
 
         Args:
-            relevance_judgments (Dict[str, Dict[str, int]]): Ground truth
-                relevance judgments.
-            run_results (Dict[str, Dict[str, float]]): System run results
-                with scores.
-            config (Optional[EvaluatorParams]): Configuration for evaluation.
-                Defaults to EvaluatorParams() if None.
+            relevance_judgments: Ground truth relevance judgments.
+            run_results: System run results with scores.
+            config: Configuration for evaluation.
+                Defaults to EvaluatorParams() if None is passed.
 
         Raises:
             ValueError: If input data is invalid.
@@ -107,15 +100,13 @@ class Evaluator:
         """Validate the input relevance judgments, system results, and cutoff values.
 
         Args:
-            relevance_judgments (Dict[str, Dict[str, int]]): Ground truth
-                relevance judgments.
-            run_results (Dict[str, Dict[str, float]]): System run results
-                with scores.
-            cutoff_values (Tuple[int, ...]): Cutoff values for evaluation.
+            relevance_judgments: Ground truth relevance judgments.
+            run_results: System run results with scores.
+            cutoff_values: Cutoff values for evaluation.
 
         Raises:
-            ValueError: If relevance judgments or run results are empty, or
-                if cutoff values are invalid.
+            ValueError: If relevance judgments or run results are empty,
+                or if cutoff values are invalid.
         """
         if not relevance_judgments or not run_results:
             msg = "Relevance judgments and run results must be non-empty."
@@ -132,7 +123,7 @@ class Evaluator:
             )
 
     def _filter_identical_ids(self) -> None:
-        """Filter out pairs where the query ID matches the document ID."""
+        """Filter out query-document pairs with identical query and document IDs."""
         if not self.config.ignore_identical_ids:
             return
 

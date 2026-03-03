@@ -1,4 +1,4 @@
-"""Data loader module for information retrieval datasets using ir_datasets."""
+"""Data loader for IR datasets using ir_datasets library."""
 
 from ir_datasets import load as load_dataset
 

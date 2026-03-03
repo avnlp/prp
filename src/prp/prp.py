@@ -1,4 +1,4 @@
-"""Pairwise Ranking Prompting implementation for document reranking using LLMs."""
+"""Pairwise Ranking Prompting (PRP) implementation for IR reranking."""
 
 import json
 from collections.abc import Callable
@@ -105,7 +105,9 @@ class PairwiseRankingPrompting:
         return sorted_docs[:top_k] if top_k is not None else sorted_docs
 
     def _compare_pair(self, query: str, doc_a: str, doc_b: str) -> str:
-        """Send a pairwise comparison request and return the preferred label.
+        """Send a pairwise comparison request to the LLM.
+
+        Returns the preferred label.
 
         Args:
             query: Search query string.
@@ -185,8 +187,8 @@ class PairwiseRankingPrompting:
         Args:
             indices: List of document indices to heapify.
             heap_size: Number of elements in the heap.
-            compare_fn: Function to compare two indices (returns True if
-                first should come first).
+            compare_fn: Function to compare two indices.
+                Returns True if first should come first.
         """
         for root in range(heap_size // 2 - 1, -1, -1):
             self._sift_down(indices, root, heap_size, compare_fn)

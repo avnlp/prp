@@ -1,4 +1,4 @@
-"""Configuration module for evaluation parameters."""
+"""Configuration for evaluation parameters."""
 
 from dataclasses import dataclass
 
@@ -8,13 +8,13 @@ class EvaluatorConfig:
     """Configuration for evaluation parameters.
 
     Attributes:
-        cutoff_values (Tuple[int, ...]): Cutoff values for evaluation metrics.
-        ignore_identical_ids (bool): Whether to ignore results where query
-            and document IDs are identical.
-        decimal_precision (int): Number of decimal places for rounding
-            metric values.
-        metrics_to_compute (Tuple[str, ...]): Metrics to compute. Options:
-            'ndcg', 'map', 'recall', 'precision'.
+        cutoff_values: Cutoff values for evaluation metrics.
+        ignore_identical_ids: Whether to ignore results where query and
+            doc IDs are same.
+        decimal_precision: Number of decimal places for rounding metric
+            values.
+        metrics_to_compute: Metrics to compute. Options: 'ndcg', 'map',
+            'recall', 'precision'.
     """
 
     cutoff_values: tuple[int, ...] = (1, 3, 5, 10)

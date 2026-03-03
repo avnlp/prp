@@ -1,4 +1,4 @@
-"""Pairwise Ranking Prompting (PRP) library for information retrieval."""
+"""Public API for the Pairwise Ranking Prompting (PRP) library."""
 
 from prp.dataloader.dataloader import Dataloader
 from prp.evaluation.evaluator import Evaluator

@@ -1,1 +1,1 @@
-"""NFCorpus pipeline module."""
+"""NFCorpus pipeline."""

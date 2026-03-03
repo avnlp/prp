@@ -1,4 +1,4 @@
-"""Tests for the EvaluatorParams configuration class."""
+"""Tests for evaluation configuration."""
 
 import pytest
 
@@ -6,10 +6,10 @@ from prp.evaluation.evaluator_params import EvaluatorParams
 
 
 class TestEvaluatorParams:
-    """Test suite for EvaluatorParams: initialization and validation."""
+    """Test suite for the EvaluatorParams class."""
 
     def test_valid_config_initialization(self):
-        """Test EvaluatorParams initialization with custom configuration values.
+        """Test that EvaluatorParams initializes with custom configuration values.
 
         Verifies that all configuration parameters are correctly set during
         initialization and can be retrieved with the exact values provided.
@@ -55,7 +55,7 @@ class TestEvaluatorParams:
             EvaluatorParams(metrics_to_compute=("invalid_metric",))
 
     def test_default_config_values(self):
-        """Test EvaluatorParams defaults when no parameters are specified.
+        """Test that EvaluatorParams provides sensible default values.
 
         Verifies that:
         - Cutoff values are not empty
@@ -70,3 +70,23 @@ class TestEvaluatorParams:
         assert isinstance(config.ignore_identical_ids, bool)
         assert isinstance(config.decimal_precision, int)
         assert len(config.metrics_to_compute) > 0
+
+    def test_empty_cutoff_values_raises_error(self):
+        """Test that empty cutoff_values tuple raises ValueError."""
+        with pytest.raises(ValueError, match="non-empty tuple"):
+            EvaluatorParams(cutoff_values=())
+
+    def test_non_tuple_cutoff_values_raises_error(self):
+        """Test that non-tuple cutoff_values raises ValueError."""
+        with pytest.raises(ValueError, match="non-empty tuple"):
+            EvaluatorParams(cutoff_values=[1, 3, 5])  # type: ignore
+
+    def test_empty_metrics_to_compute_raises_error(self):
+        """Test that empty metrics_to_compute tuple raises ValueError."""
+        with pytest.raises(ValueError, match="non-empty tuple"):
+            EvaluatorParams(metrics_to_compute=())
+
+    def test_non_tuple_metrics_to_compute_raises_error(self):
+        """Test that non-tuple metrics_to_compute raises ValueError."""
+        with pytest.raises(ValueError, match="non-empty tuple"):
+            EvaluatorParams(metrics_to_compute=["ndcg"])  # type: ignore

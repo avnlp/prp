@@ -1,4 +1,4 @@
-"""Dataset container module for information retrieval data."""
+"""Dataset container for IR data components."""
 
 from dataclasses import dataclass
 
