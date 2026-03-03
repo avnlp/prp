@@ -1,3 +1,5 @@
+"""Indexing pipeline module for vector database ingestion."""
+
 import argparse
 from pathlib import Path
 
@@ -35,7 +37,9 @@ def main(config_path: str):
     )
 
     # Initialize embedder
-    embedder = SentenceTransformersDocumentEmbedder(model=config.embedding.model, **config.embedding.model_kwargs)
+    embedder = SentenceTransformersDocumentEmbedder(
+        model=config.embedding.model, **config.embedding.model_kwargs
+    )
     embedder.warm_up()
 
     # Create indexing pipeline

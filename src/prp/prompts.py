@@ -1,4 +1,7 @@
+"""Prompt templates and response validation for pairwise ranking."""
+
 from pydantic import BaseModel, Field, ValidationInfo, field_validator
+
 
 SYSTEM_PROMPT = """You are a ranking assistant that compares two passages in response to a query.
 Respond ONLY with 'A' if Passage A is better, or 'B' if Passage B is better.

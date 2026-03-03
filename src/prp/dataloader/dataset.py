@@ -1,3 +1,5 @@
+"""Dataset container module for information retrieval data."""
+
 from dataclasses import dataclass
 
 

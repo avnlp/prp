@@ -1,3 +1,5 @@
+"""Configuration parameters module for evaluation."""
+
 from dataclasses import dataclass
 
 
@@ -7,9 +9,12 @@ class EvaluatorParams:
 
     Attributes:
         cutoff_values (Tuple[int, ...]): Cutoff values for evaluation metrics.
-        ignore_identical_ids (bool): Whether to ignore results where query and document IDs are identical.
-        decimal_precision (int): Number of decimal places for rounding metric values.
-        metrics_to_compute (Tuple[str, ...]): Metrics to compute. Options: 'ndcg', 'map', 'recall', 'precision'.
+        ignore_identical_ids (bool): Whether to ignore results where query
+            and document IDs are identical.
+        decimal_precision (int): Number of decimal places for rounding
+            metric values.
+        metrics_to_compute (Tuple[str, ...]): Metrics to compute. Options:
+            'ndcg', 'map', 'recall', 'precision'.
     """
 
     cutoff_values: tuple[int, ...] = (1, 3, 5, 10)
@@ -35,10 +40,16 @@ class EvaluatorParams:
 
         # Validate metrics_to_compute: non-empty tuple containing allowed metric names.
         allowed_metrics = {"ndcg", "map", "recall", "precision"}
-        if not self.metrics_to_compute or not isinstance(self.metrics_to_compute, tuple):
-            msg = "metrics_to_compute must be a non-empty tuple of allowed metric names."
+        if not self.metrics_to_compute or not isinstance(
+            self.metrics_to_compute, tuple
+        ):
+            msg = (
+                "metrics_to_compute must be a non-empty tuple of allowed metric names."
+            )
             raise ValueError(msg)
         for metric in self.metrics_to_compute:
             if metric not in allowed_metrics:
-                msg = f"Invalid metric: {metric}. Allowed metrics are {allowed_metrics}."
+                msg = (
+                    f"Invalid metric: {metric}. Allowed metrics are {allowed_metrics}."
+                )
                 raise ValueError(msg)

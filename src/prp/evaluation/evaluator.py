@@ -1,5 +1,12 @@
+"""Retrieval evaluation engine using pytrec_eval.
+
+Based on the BEIR retrieval evaluation library, restructured with Pydantic
+validation and error handling for metric edge cases.
+"""
+
 # This implementation is based on the Retrieval Evaluation from https://github.com/beir-cellar/beir/blob/main/beir/retrieval/evaluation.py
-# The code has been restructured with extensive Pydantic validation and error handling for metric edge cases.
+# The code has been restructured with extensive Pydantic validation and
+# error handling for metric edge cases.
 
 import copy
 import logging
@@ -9,6 +16,7 @@ from pytrec_eval import RelevanceEvaluator
 
 from prp.evaluation.evaluation_metrics import EvaluationMetrics
 from prp.evaluation.evaluator_params import EvaluatorParams
+
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -22,10 +30,13 @@ class Evaluator:
     using the pytrec_eval library.
 
     Attributes:
-        relevance_judgments (Dict[str, Dict[str, int]]): The ground truth relevance judgments.
-        run_results (Dict[str, Dict[str, float]]): The results produced by an IR system.
+        relevance_judgments (Dict[str, Dict[str, int]]): The ground truth
+            relevance judgments.
+        run_results (Dict[str, Dict[str, float]]): The results produced by
+            an IR system.
         config (EvaluatorParams): Configuration for evaluation.
-        _evaluation_metrics (EvaluationMetrics): Cached evaluation metrics after computation.
+        _evaluation_metrics (EvaluationMetrics): Cached evaluation metrics
+            after computation.
     """
 
     def __init__(
@@ -34,20 +45,27 @@ class Evaluator:
         run_results: dict[str, dict[str, float]],
         config: EvaluatorParams | None = None,
     ) -> None:
-        """Initialize the evaluator with relevance judgments, system results, and configuration.
+        """Initialize the evaluator with relevance judgments and configuration.
 
         Args:
-            relevance_judgments (Dict[str, Dict[str, int]]): Ground truth relevance judgments.
-            run_results (Dict[str, Dict[str, float]]): System run results with scores.
-            config (Optional[EvaluatorParams]): Configuration for evaluation. Defaults to EvaluatorParams() if None.
+            relevance_judgments (Dict[str, Dict[str, int]]): Ground truth
+                relevance judgments.
+            run_results (Dict[str, Dict[str, float]]): System run results
+                with scores.
+            config (Optional[EvaluatorParams]): Configuration for evaluation.
+                Defaults to EvaluatorParams() if None.
 
         Raises:
             ValueError: If input data is invalid.
         """
         self.config = config if config is not None else EvaluatorParams()
-        self._validate_input_data(relevance_judgments, run_results, self.config.cutoff_values)
+        self._validate_input_data(
+            relevance_judgments, run_results, self.config.cutoff_values
+        )
 
-        self.relevance_judgments: dict[str, dict[str, int]] = copy.deepcopy(relevance_judgments)
+        self.relevance_judgments: dict[str, dict[str, int]] = copy.deepcopy(
+            relevance_judgments
+        )
         self.run_results: dict[str, dict[str, float]] = copy.deepcopy(run_results)
         self._evaluation_metrics: EvaluationMetrics | None = None
 
@@ -71,7 +89,9 @@ class Evaluator:
 
         self._filter_identical_ids()
         raw_scores: dict[str, dict[str, float]] = self._compute_base_metrics()
-        averaged_metrics: dict[str, dict[str, float]] = self._compute_average_metrics(raw_scores)
+        averaged_metrics: dict[str, dict[str, float]] = self._compute_average_metrics(
+            raw_scores
+        )
         self._evaluation_metrics = EvaluationMetrics(**averaged_metrics)
 
         logger.info("Evaluation completed successfully")
@@ -87,12 +107,15 @@ class Evaluator:
         """Validate the input relevance judgments, system results, and cutoff values.
 
         Args:
-            relevance_judgments (Dict[str, Dict[str, int]]): Ground truth relevance judgments.
-            run_results (Dict[str, Dict[str, float]]): System run results with scores.
+            relevance_judgments (Dict[str, Dict[str, int]]): Ground truth
+                relevance judgments.
+            run_results (Dict[str, Dict[str, float]]): System run results
+                with scores.
             cutoff_values (Tuple[int, ...]): Cutoff values for evaluation.
 
         Raises:
-            ValueError: If relevance judgments or run results are empty, or if cutoff values are invalid.
+            ValueError: If relevance judgments or run results are empty, or
+                if cutoff values are invalid.
         """
         if not relevance_judgments or not run_results:
             msg = "Relevance judgments and run results must be non-empty."
@@ -104,10 +127,12 @@ class Evaluator:
 
         common_queries = set(relevance_judgments) & set(run_results)
         if not common_queries:
-            logger.warning("No common queries between relevance judgments and run results.")
+            logger.warning(
+                "No common queries between relevance judgments and run results."
+            )
 
     def _filter_identical_ids(self) -> None:
-        """Filter out query-document pairs where the query ID is identical to the document ID."""
+        """Filter out pairs where the query ID matches the document ID."""
         if not self.config.ignore_identical_ids:
             return
 
@@ -115,14 +140,20 @@ class Evaluator:
         removed_pairs_count = 0
 
         for query_id, doc_scores in self.run_results.items():
-            filtered_doc_scores = {doc_id: score for doc_id, score in doc_scores.items() if query_id != doc_id}
+            filtered_doc_scores = {
+                doc_id: score
+                for doc_id, score in doc_scores.items()
+                if query_id != doc_id
+            }
             removed_pairs_count += len(doc_scores) - len(filtered_doc_scores)
             filtered_results[query_id] = filtered_doc_scores
 
         self.run_results = filtered_results
 
         if removed_pairs_count > 0:
-            logger.info(f"Removed {removed_pairs_count} query-document pairs with identical IDs.")
+            logger.info(
+                f"Removed {removed_pairs_count} query-document pairs with identical IDs."
+            )
 
     def _compute_base_metrics(self) -> dict[str, dict[str, float]]:
         """Compute base evaluation metrics using pytrec_eval.
@@ -141,20 +172,30 @@ class Evaluator:
         }
 
         selected_metric_commands = {
-            metric: command for metric, command in metric_commands.items() if metric in self.config.metrics_to_compute
+            metric: command
+            for metric, command in metric_commands.items()
+            if metric in self.config.metrics_to_compute
         }
 
         if len(selected_metric_commands) != len(self.config.metrics_to_compute):
-            missing_metrics = set(self.config.metrics_to_compute) - set(selected_metric_commands.keys())
+            missing_metrics = set(self.config.metrics_to_compute) - set(
+                selected_metric_commands.keys()
+            )
             msg = f"Undefined metrics requested: {missing_metrics}"
             raise ValueError(msg)
 
-        evaluator = RelevanceEvaluator(self.relevance_judgments, set(selected_metric_commands.values()))
+        evaluator = RelevanceEvaluator(
+            self.relevance_judgments, set(selected_metric_commands.values())
+        )
         return evaluator.evaluate(self.run_results)
 
-    def _compute_average_metrics(self, raw_scores: dict[str, dict[str, float]]) -> dict[str, dict[str, float]]:
+    def _compute_average_metrics(
+        self, raw_scores: dict[str, dict[str, float]]
+    ) -> dict[str, dict[str, float]]:
         # Initialize the accumulators for each metric and cutoff
-        averaged_metrics: dict[str, dict[str, float]] = {metric: {} for metric in self.config.metrics_to_compute}
+        averaged_metrics: dict[str, dict[str, float]] = {
+            metric: {} for metric in self.config.metrics_to_compute
+        }
         for metric in self.config.metrics_to_compute:
             for cutoff in self.config.cutoff_values:
                 metric_key = f"{metric.upper()}@{cutoff}"
@@ -175,14 +216,17 @@ class Evaluator:
                         score_key = f"P_{cutoff}"
                     else:
                         score_key = f"{metric}_{cutoff}"
-                    averaged_metrics[metric][f"{metric.upper()}@{cutoff}"] += query_scores.get(score_key, 0.0)
+                    averaged_metrics[metric][f"{metric.upper()}@{cutoff}"] += (
+                        query_scores.get(score_key, 0.0)
+                    )
 
         # Calculate averages and round the results.
         for metric in self.config.metrics_to_compute:
             for cutoff in self.config.cutoff_values:
                 metric_key = f"{metric.upper()}@{cutoff}"
                 averaged_metrics[metric][metric_key] = round(
-                    averaged_metrics[metric][metric_key] / num_queries, self.config.decimal_precision
+                    averaged_metrics[metric][metric_key] / num_queries,
+                    self.config.decimal_precision,
                 )
 
         return averaged_metrics

@@ -1,3 +1,5 @@
+"""Instructor retrieval pipeline module."""
+
 import argparse
 from pathlib import Path
 
@@ -54,7 +56,9 @@ def main(config_path: str):
     # Create and connect pipeline
     embedding_pipeline = Pipeline()
     embedding_pipeline.add_component(instance=text_embedder, name="text_embedder")
-    embedding_pipeline.add_component(instance=milvus_retriever, name="embedding_retriever")
+    embedding_pipeline.add_component(
+        instance=milvus_retriever, name="embedding_retriever"
+    )
     embedding_pipeline.connect("text_embedder", "embedding_retriever")
 
     # Process each query
@@ -85,7 +89,9 @@ def main(config_path: str):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description=("Run the Instructor-based retrieval pipeline with YAML configuration")
+        description=(
+            "Run the Instructor-based retrieval pipeline with YAML configuration"
+        )
     )
     parser.add_argument(
         "--config",

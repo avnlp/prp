@@ -1,3 +1,5 @@
+"""Tests for the EvaluationMetrics class and metric computation."""
+
 import pytest
 
 from prp.evaluation.evaluation_metrics import EvaluationMetrics
@@ -6,24 +8,27 @@ from prp.evaluation.evaluator_params import EvaluatorParams
 
 
 class TestEvaluationMetrics:
-    """Test suite for the EvaluationMetrics class, ensuring correct initialization and data handling."""
+    """Test suite for EvaluationMetrics: initialization and data handling."""
 
     def test_evaluation_metrics_validation(self):
-        """Test that EvaluationMetrics raises a ValueError for metrics with different lengths.
+        """Test EvaluationMetrics raises ValueError for metrics with different lengths.
 
-        Ensures that metrics passed to EvaluationMetrics must have consistent keys across
-        different metric types to maintain data integrity.
+        Ensures that metrics passed to EvaluationMetrics must have consistent
+        keys across different metric types to maintain data integrity.
         """
         with pytest.raises(ValueError):
             EvaluationMetrics(
-                ndcg={"NDCG@5": 0.5}, map={"MAP@10": 0.6}, recall={"RECALL@5": 0.7}, precision={"PRECISION@5": 0.8}
+                ndcg={"NDCG@5": 0.5},
+                map={"MAP@10": 0.6},
+                recall={"RECALL@5": 0.7},
+                precision={"PRECISION@5": 0.8},
             )
 
     def test_metrics_extraction(self):
-        """Test that EvaluationMetrics correctly stores and allows extraction of individual metric values.
+        """Test EvaluationMetrics stores and allows individual metric value extraction.
 
-        Verifies that metrics can be accessed by their specific keys after initialization,
-        and that the values are preserved exactly as input.
+        Verifies that metrics can be accessed by their specific keys after
+        initialization, and that the values are preserved exactly as input.
         """
         metrics = EvaluationMetrics(
             ndcg={"NDCG@5": 0.1235},
@@ -49,7 +54,9 @@ class TestEvaluationMetrics:
 
         # Create evaluator with default configuration
         evaluator = Evaluator(
-            {"q1": {}}, {"q1": {}}, EvaluatorParams(metrics_to_compute=("ndcg", "map"), cutoff_values=(5,))
+            {"q1": {}},
+            {"q1": {}},
+            EvaluatorParams(metrics_to_compute=("ndcg", "map"), cutoff_values=(5,)),
         )
 
         # Compute average metrics

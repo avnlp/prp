@@ -1,3 +1,5 @@
+"""Tests for the PairwiseRankingPrompting class."""
+
 import json
 from types import SimpleNamespace
 
@@ -52,9 +54,11 @@ def prp_instance():
     """Fixture to create a fresh PairwiseRankingPrompting instance.
 
     Returns:
-        PairwiseRankingPrompting: An instance of the PRP class with dummy model and API info.
+        PairwiseRankingPrompting: PRP instance with dummy model and API info.
     """
-    return PairwiseRankingPrompting(model_name="test-model", api_key="llm_api_key", base_url="llm_base_url")
+    return PairwiseRankingPrompting(
+        model_name="test-model", api_key="llm_api_key", base_url="llm_base_url"
+    )
 
 
 class TestPairwiseRankingPrompting:
@@ -66,7 +70,9 @@ class TestPairwiseRankingPrompting:
 
     def test_rerank_empty(self):
         """Test reranking with an empty document list returns empty list."""
-        pr = PairwiseRankingPrompting(model_name="m", api_key="llm_api_key", base_url="llm_base_url")
+        pr = PairwiseRankingPrompting(
+            model_name="m", api_key="llm_api_key", base_url="llm_base_url"
+        )
         assert pr.rerank("q", [], method="allpairs") == []
 
     def test_rerank_invalid_method(self, prp_instance):
@@ -78,7 +84,9 @@ class TestPairwiseRankingPrompting:
     def test_rerank_calls_allpairs_and_slices(self, monkeypatch, prp_instance):
         """Test rerank with top_k slicing from the allpairs method."""
         docs = ["a", "b", "c"]
-        monkeypatch.setattr(prp_instance, "_allpairs_rerank", lambda query, documents: ["X", "Y", "Z"])
+        monkeypatch.setattr(
+            prp_instance, "_allpairs_rerank", lambda query, documents: ["X", "Y", "Z"]
+        )
         res = prp_instance.rerank("q", docs, method="allpairs", top_k=2)
         assert res == ["X", "Y"]
 
@@ -100,14 +108,16 @@ class TestPairwiseRankingPrompting:
             tokens (int or None): Simulated token usage.
         """
         resp = MockResponse(resp_content, total_tokens=tokens)
-        prp_instance.client = SimpleNamespace(chat=SimpleNamespace(completions=MockChat(resp)))
+        prp_instance.client = SimpleNamespace(
+            chat=SimpleNamespace(completions=MockChat(resp))
+        )
         result = prp_instance._compare_pair("q", "d1", "d2")
         assert result == expected
         if tokens:
             assert prp_instance.get_token_count() == tokens
 
     def test_compare_pair_exception(self, prp_instance):
-        """Test _compare_pair handles API exceptions gracefully and returns 'A' by default.
+        """Test _compare_pair handles API exceptions gracefully and returns 'A'.
 
         Args:
             prp_instance (PairwiseRankingPrompting): The PRP instance to test.
@@ -162,7 +172,9 @@ class TestPairwiseRankingPrompting:
         def compare(i, j):
             return i > j
 
-        prp = PairwiseRankingPrompting(model_name="m", api_key="llm_api_key", base_url="llm_base_url")
+        prp = PairwiseRankingPrompting(
+            model_name="m", api_key="llm_api_key", base_url="llm_base_url"
+        )
         prp._sift_down(indices, 0, len(indices), compare)
         index_value = 3
         assert indices[0] == index_value
@@ -173,7 +185,9 @@ class TestPairwiseRankingPrompting:
         Args:
             prp (PairwiseRankingPrompting): The PRP instance to test.
         """
-        prp = PairwiseRankingPrompting(model_name="m", api_key="llm_api_key", base_url="llm_base_url")
+        prp = PairwiseRankingPrompting(
+            model_name="m", api_key="llm_api_key", base_url="llm_base_url"
+        )
         docs = ["only"]
         assert prp._heapsort_rerank("q", docs) == docs
 
@@ -194,7 +208,7 @@ class TestPairwiseRankingPrompting:
         assert sorted_docs == ["b", "a"]
 
     def test_allpairs_rerank(self, monkeypatch, prp_instance):
-        """Test that all-pairs ranking preserves order based on consistent pairwise preferences.
+        """Test all-pairs ranking preserves document order with consistent comparisons.
 
         Args:
             monkeypatch (pytest.MonkeyPatch): Pytest monkeypatch fixture for patching.
@@ -215,7 +229,9 @@ class TestPairwiseRankingPrompting:
         Args:
             prp (PairwiseRankingPrompting): The PRP instance to test.
         """
-        prp = PairwiseRankingPrompting(model_name="m", api_key="llm_api_key", base_url="llm_base_url")
+        prp = PairwiseRankingPrompting(
+            model_name="m", api_key="llm_api_key", base_url="llm_base_url"
+        )
         assert prp._sliding_k_rerank("q", ["only"], num_passes=3) == ["only"]
 
     def test_sliding_k_rerank_two(self, monkeypatch, prp_instance):
@@ -258,6 +274,10 @@ class TestPairwiseRankingPrompting:
             prp_instance (PairwiseRankingPrompting): The PRP instance to test.
         """
         docs = ["a", "b", "c"]
-        monkeypatch.setattr(prp_instance, "_sliding_k_rerank", lambda q, d, num: ["X", "Y", "Z"])
-        res = prp_instance.rerank("q", docs, method="sliding_k", top_k=2, sliding_k_passes=5)
+        monkeypatch.setattr(
+            prp_instance, "_sliding_k_rerank", lambda q, d, num: ["X", "Y", "Z"]
+        )
+        res = prp_instance.rerank(
+            "q", docs, method="sliding_k", top_k=2, sliding_k_passes=5
+        )
         assert res == ["X", "Y"]

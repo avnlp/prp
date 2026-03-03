@@ -1,3 +1,5 @@
+"""Evaluation pipeline for Pairwise Ranking Prompting in information retrieval."""
+
 import argparse
 from pathlib import Path
 
@@ -11,7 +13,7 @@ from prp.config import PairwiseRankingPromptingConfig, load_config
 
 
 def main(config_path: str):
-    """Run a pipeline evaluating the quality of the retrieved documents after using the Pairwise LLM Ranker.
+    """Evaluate retrieved document quality using the Pairwise LLM Ranker.
 
     The pipeline consists of:
     1. Loading dataset with ir_datasets format
@@ -43,7 +45,9 @@ def main(config_path: str):
     )
 
     # Initialize text embedder
-    text_embedder = SentenceTransformersTextEmbedder(model=config.embedding.model, **config.embedding.model_kwargs)
+    text_embedder = SentenceTransformersTextEmbedder(
+        model=config.embedding.model, **config.embedding.model_kwargs
+    )
 
     # Initialize ranker
     llm_ranker = PairwiseRankingPrompting(
@@ -57,7 +61,9 @@ def main(config_path: str):
     # Create and connect pipeline
     embedding_pipeline = Pipeline()
     embedding_pipeline.add_component(instance=text_embedder, name="text_embedder")
-    embedding_pipeline.add_component(instance=milvus_retriever, name="embedding_retriever")
+    embedding_pipeline.add_component(
+        instance=milvus_retriever, name="embedding_retriever"
+    )
     embedding_pipeline.add_component(instance=llm_ranker, name="ranker")
     embedding_pipeline.connect("text_embedder", "embedding_retriever")
 

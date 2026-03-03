@@ -1,3 +1,5 @@
+"""Tests for the Dataloader and Dataset classes."""
+
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
@@ -10,10 +12,12 @@ from prp.dataloader.dataloader import Dataloader, Dataset
 def mock_ir_dataset():
     """Fixture to mock the `ir_datasets.load` function.
 
-    This fixture patches `ir_datasets.load` to return a mock dataset that can be used for testing.
+    This fixture patches `ir_datasets.load` to return a mock dataset
+    that can be used for testing.
 
     Yields:
-        MagicMock: A mock dataset with iterable methods for documents, queries, and relevance judgments.
+        MagicMock: A mock dataset with iterable methods for documents,
+            queries, and relevance judgments.
     """
     with patch("prp.dataloader.dataloader.load_dataset") as mock_load_function:
         mock_dataset_instance = MagicMock()
@@ -25,7 +29,7 @@ class TestDataset:
     """Test suite for the Dataloader and Dataset classes."""
 
     def test_dataloader_load(self, mock_ir_dataset):
-        """Tests that the Dataloader correctly loads a dataset and structures it properly.
+        """Tests that Dataloader correctly loads a dataset and structures it properly.
 
         Args:
             mock_ir_dataset (MagicMock): The mocked dataset fixture.
@@ -58,14 +62,19 @@ class TestDataset:
 
     @pytest.mark.parametrize("dataset_name", ["invalid/dataset", "nonexistent"])
     def test_dataloader_invalid_dataset(self, dataset_name):
-        """Tests that the Dataloader raises an error when an invalid dataset is provided.
+        """Tests that Dataloader raises an error when an invalid dataset is provided.
 
         Args:
             dataset_name (str): The name of the dataset that does not exist.
         """
-        with patch("prp.dataloader.dataloader.load_dataset", side_effect=ValueError("Dataset not found")):
-            with pytest.raises(ValueError, match="Dataset not found"):
-                Dataloader(dataset_name).load()
+        with (
+            patch(
+                "prp.dataloader.dataloader.load_dataset",
+                side_effect=ValueError("Dataset not found"),
+            ),
+            pytest.raises(ValueError, match="Dataset not found"),
+        ):
+            Dataloader(dataset_name).load()
 
     def test_dataloader_missing_text_field(self, mock_ir_dataset):
         """Tests that the Dataloader raises an error if a document lacks a 'text' field.

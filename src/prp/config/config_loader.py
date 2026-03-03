@@ -1,8 +1,11 @@
+"""Configuration loader utilities for PRP."""
+
 from pathlib import Path
 from typing import TypeVar
 
 import yaml
 from pydantic import BaseModel
+
 
 T = TypeVar("T", bound=BaseModel)
 

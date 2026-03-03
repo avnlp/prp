@@ -1,3 +1,5 @@
+"""Base configuration classes for PRP."""
+
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field, model_validator
@@ -8,7 +10,9 @@ class DatasetConfig(BaseModel):
 
     name: str = Field(
         ...,
-        description=("Dataset identifier in ir_datasets format. E.g., 'beir/fiqa/train'."),
+        description=(
+            "Dataset identifier in ir_datasets format. E.g., 'beir/fiqa/train'."
+        ),
     )
 
 
@@ -17,7 +21,9 @@ class EmbeddingConfig(BaseModel):
 
     model: str = Field(
         ...,
-        description=("Embedding model name/path. E.g., 'sentence-transformers/all-MiniLM-L6-v2'."),
+        description=(
+            "Embedding model name/path. E.g., 'sentence-transformers/all-MiniLM-L6-v2'."
+        ),
     )
     model_kwargs: dict[str, Any] = Field(
         default_factory=dict,
@@ -57,7 +63,9 @@ class EvaluationConfig(BaseModel):
     )
     ignore_identical_ids: bool = Field(
         default=False,
-        description=("Whether to exclude docs with the same ID as the query (prevents leakage)."),
+        description=(
+            "Whether to exclude docs with the same ID as the query (prevents leakage)."
+        ),
     )
     decimal_precision: int = Field(
         default=4,

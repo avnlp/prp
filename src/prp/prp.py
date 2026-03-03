@@ -1,3 +1,5 @@
+"""Pairwise Ranking Prompting implementation for document reranking using LLMs."""
+
 import json
 from collections.abc import Callable
 from itertools import combinations
@@ -34,7 +36,8 @@ class PairwiseRankingPrompting:
             api_key: API key for authentication (defaults to environment variable).
             base_url: Custom API endpoint URL, if any.
             client_kwargs: Additional keyword arguments passed to the OpenAI client.
-            completion_kwargs: Default parameters for completion calls (e.g., temperature).
+            completion_kwargs: Default parameters for completion calls
+                (e.g., temperature).
         """
         client_args = {"api_key": api_key}
         if base_url:
@@ -102,7 +105,7 @@ class PairwiseRankingPrompting:
         return sorted_docs[:top_k] if top_k is not None else sorted_docs
 
     def _compare_pair(self, query: str, doc_a: str, doc_b: str) -> str:
-        """Send a pairwise comparison request to the LLM and returns the preferred label.
+        """Send a pairwise comparison request and return the preferred label.
 
         Args:
             query: Search query string.
@@ -113,7 +116,9 @@ class PairwiseRankingPrompting:
             str: "A" if doc_a is preferred, "B" if doc_b is preferred.
         """
         try:
-            user_content = USER_PROMPT.format(query=query, document1=doc_a, document2=doc_b)
+            user_content = USER_PROMPT.format(
+                query=query, document1=doc_a, document2=doc_b
+            )
             response = self.client.chat.completions.create(
                 model=self.model_name,
                 messages=[
@@ -134,7 +139,11 @@ class PairwiseRankingPrompting:
                 return PairwiseRankingResponse(**result).selected_passage
             except (ValueError, TypeError, KeyError):
                 # Fallback: first character A or B
-                return response_content[:1].upper() if response_content[:1] in ("A", "B") else "A"
+                return (
+                    response_content[:1].upper()
+                    if response_content[:1] in ("A", "B")
+                    else "A"
+                )
         except Exception:
             # On API failure, default to first document
             return "A"
@@ -154,8 +163,12 @@ class PairwiseRankingPrompting:
             Tuple[float, float]: Scores for doc_a and doc_b (0.0, 0.5, or 1.0).
         """
         # Compare A vs B and B vs A
-        pref_ab = self._compare_pair(query, documents[doc_index_a], documents[doc_index_b])
-        pref_ba = self._compare_pair(query, documents[doc_index_b], documents[doc_index_a])
+        pref_ab = self._compare_pair(
+            query, documents[doc_index_a], documents[doc_index_b]
+        )
+        pref_ba = self._compare_pair(
+            query, documents[doc_index_b], documents[doc_index_a]
+        )
 
         if pref_ab == "A" and pref_ba == "B":
             return 1.0, 0.0
@@ -164,18 +177,27 @@ class PairwiseRankingPrompting:
         # Tie or inconsistent
         return 0.5, 0.5
 
-    def _build_max_heap(self, indices: list[int], heap_size: int, compare_fn: Callable[[int, int], bool]) -> None:
+    def _build_max_heap(
+        self, indices: list[int], heap_size: int, compare_fn: Callable[[int, int], bool]
+    ) -> None:
         """Convert a list of indices into a max-heap in place.
 
         Args:
             indices: List of document indices to heapify.
             heap_size: Number of elements in the heap.
-            compare_fn: Function to compare two indices (True if first should come first).
+            compare_fn: Function to compare two indices (returns True if
+                first should come first).
         """
         for root in range(heap_size // 2 - 1, -1, -1):
             self._sift_down(indices, root, heap_size, compare_fn)
 
-    def _sift_down(self, indices: list[int], root: int, heap_size: int, compare_fn: Callable[[int, int], bool]) -> None:
+    def _sift_down(
+        self,
+        indices: list[int],
+        root: int,
+        heap_size: int,
+        compare_fn: Callable[[int, int], bool],
+    ) -> None:
         """Maintains the max-heap property by sifting a root element down.
 
         Args:
@@ -218,7 +240,9 @@ class PairwiseRankingPrompting:
 
         # Define comparison for heap: True if i precedes j
         def compare_indices(i: int, j: int) -> bool:
-            score_i, score_j = self._compare_with_bias_mitigation(query, i, j, documents)
+            score_i, score_j = self._compare_with_bias_mitigation(
+                query, i, j, documents
+            )
             if score_i != score_j:
                 return score_i > score_j
             return i < j  # stable tie-break
@@ -232,7 +256,9 @@ class PairwiseRankingPrompting:
         # Return documents in descending relevance
         return [documents[i] for i in reversed(indices)]
 
-    def _sliding_k_rerank(self, query: str, documents: list[str], num_passes: int) -> list[str]:
+    def _sliding_k_rerank(
+        self, query: str, documents: list[str], num_passes: int
+    ) -> list[str]:
         """Rerank documents using the PRP-Sliding-K approach with K passes.
 
         Args:
@@ -278,7 +304,9 @@ class PairwiseRankingPrompting:
 
         scores = np.zeros(n)
         for i, j in combinations(range(n), 2):
-            score_i, score_j = self._compare_with_bias_mitigation(query, i, j, documents)
+            score_i, score_j = self._compare_with_bias_mitigation(
+                query, i, j, documents
+            )
             scores[i] += score_i
             scores[j] += score_j
 

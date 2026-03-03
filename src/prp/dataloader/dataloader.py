@@ -1,3 +1,5 @@
+"""Data loader module for information retrieval datasets using ir_datasets."""
+
 from ir_datasets import load as load_dataset
 
 from prp.dataloader.dataset import Dataset
@@ -6,8 +8,8 @@ from prp.dataloader.dataset import Dataset
 class Dataloader:
     """A data loader for information retrieval datasets using the ir_datasets library.
 
-    This class handles loading of document corpora, queries, and query relevance judgments
-    from datasets available in the ir_datasets package format.
+    This class handles loading of document corpora, queries, and query relevance
+    judgments from datasets available in the ir_datasets package format.
 
     Attributes:
         dataset_name: String identifier of the dataset in ir_datasets format.
@@ -36,9 +38,9 @@ class Dataloader:
                 relevant document IDs with their relevance scores
 
         Example:
-            >>> loader = Dataloader('beir/fiqa/train')
+            >>> loader = Dataloader("beir/fiqa/train")
             >>> dataset = loader.load()
-            >>> corpus = dataset.corpus,
+            >>> corpus = (dataset.corpus,)
             >>> queries = dataset.queries
             >>> qrels = dataset.relevance_judgments
         """
@@ -64,4 +66,8 @@ class Dataloader:
                 relevance_judgments[query_id] = {}
             relevance_judgments[query_id][doc_id] = judgment.relevance
 
-        return Dataset(corpus=document_corpus, queries=query_texts, relevance_judgments=relevance_judgments)
+        return Dataset(
+            corpus=document_corpus,
+            queries=query_texts,
+            relevance_judgments=relevance_judgments,
+        )

@@ -1,3 +1,5 @@
+"""Configuration classes for pairwise ranking prompting."""
+
 from enum import Enum
 from typing import Any
 
@@ -13,7 +15,10 @@ from prp.config.base_config import (
 
 
 class PairwiseMethod(str, Enum):
-    """Available pairwise ranking methods (must match PairwiseRankingPrompting.rerank args)."""
+    """Available pairwise ranking methods.
+
+    Must match PairwiseRankingPrompting.rerank args.
+    """
 
     HEAPSORT = "heapsort"
     ALLPAIRS = "allpairs"
@@ -25,7 +30,9 @@ class PairwiseRankerConfig(BaseModel):
 
     model_name: str = Field(
         ...,
-        description=("LLM model name/path. E.g., 'meta-llama/Llama-3.1-8B-Instruct' or 'gpt-4o-mini'."),
+        description=(
+            "LLM model name/path. E.g., 'meta-llama/Llama-3.1-8B-Instruct' or 'gpt-4o-mini'."
+        ),
     )
     api_key: str | None = Field(
         default=None,
@@ -45,7 +52,9 @@ class PairwiseRankerConfig(BaseModel):
     )
     method: PairwiseMethod = Field(
         default=PairwiseMethod.HEAPSORT,
-        description=("Ranking algorithm: heapsort (O(n log n)), allpairs (O(n²)), sliding_k (O(k·n))."),
+        description=(
+            "Ranking algorithm: heapsort (O(n log n)), allpairs (O(n²)), sliding_k (O(k·n))."
+        ),
     )
     top_k: int = Field(
         default=10,
@@ -63,7 +72,9 @@ class PairwiseRankingPromptingConfig(BaseModel):
     """Configuration for the pairwise ranking pipeline."""
 
     dataset: DatasetConfig = Field(..., description="IR dataset identifier and split.")
-    prp: PairwiseRankerConfig = Field(..., description="PairwiseRankingPrompting ranker settings.")
+    prp: PairwiseRankerConfig = Field(
+        ..., description="PairwiseRankingPrompting ranker settings."
+    )
     embedding: EmbeddingConfig = Field(..., description="Embedding model settings.")
     milvus: MilvusConfig = Field(..., description="Milvus vector DB settings.")
     retrieval: RetrievalConfig = Field(..., description="Retrieval top-k & filters.")
