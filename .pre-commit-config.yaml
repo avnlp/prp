@@ -20,11 +20,6 @@ repos:
     hooks:
       - id: gitleaks
 
-  - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.11.3
-    hooks:
-      - id: uv-lock
-
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.15.9
     hooks:
@@ -68,7 +63,7 @@ repos:
         pass_filenames: false
 
   - repo: https://github.com/crate-ci/typos
-    rev: v1
+    rev: v1.45.0
     hooks:
       - id: typos
 
@@ -78,4 +73,4 @@ ci:
   autofix_prs_limit: 5
   autoupdate_schedule: monthly
   autoupdate_commit_msg: "ci: Pre-commit autoupdate"
-  skip: [mypy, pytest, uv-lock]
+  skip: [mypy, pytest]
