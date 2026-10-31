@@ -44,9 +44,6 @@ jobs:
           save-cache: true
           prune-cache: false
 
-      - name: Install system dependencies
-        run: sudo apt-get install -y libpcre3-dev
-
       - name: Install dependencies
         run: uv sync --all-groups
 
@@ -70,9 +67,6 @@ jobs:
           save-cache: true
           prune-cache: false
 
-      - name: Install system dependencies
-        run: sudo apt-get install -y libpcre3-dev
-
       - name: Install dependencies
         run: uv sync --all-groups
 
@@ -95,9 +89,6 @@ jobs:
           cache-dependency-glob: "pyproject.toml"
           cache-suffix: "py311"
           save-cache: false
-
-      - name: Install system dependencies
-        run: sudo apt-get install -y libpcre3-dev
 
       - name: Install dependencies
         run: uv sync --all-groups
@@ -154,9 +145,6 @@ jobs:
           cache-suffix: "py314"
           save-cache: false
 
-      - name: Install system dependencies
-        run: sudo apt-get install -y libpcre3-dev
-
       - name: Install dependencies
         run: uv sync --all-groups
 
@@ -185,9 +173,6 @@ jobs:
           cache-dependency-glob: "pyproject.toml"
           cache-suffix: "py311"
           save-cache: false
-
-      - name: Install system dependencies
-        run: sudo apt-get install -y libpcre3-dev
 
       - name: Install dependencies
         run: uv sync --all-groups
